@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Food Delivery - Your Cart{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Your Cart</h1>
+    
+    <div class="row">
+        <!-- Cart Items -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Cart Items</h5>
+                </div>
+                <div class="card-body" id="cart-items">
+                    <div class="text-center p-5">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div id="cart-summary">
+                <!-- Cart summary will be filled by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

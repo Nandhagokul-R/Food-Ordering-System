@@ -1,0 +1,228 @@
+/* Food Delivery App Custom Styles */
+
+/* Global Styles */
+:root {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+}
+
+/* Navigation */
+.navbar-brand {
+  font-weight: 700;
+}
+
+#cart-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 0.65rem;
+  transform: translate(25%, -25%);
+}
+
+/* Homepage */
+.hero-section {
+  padding: 5rem 0;
+  background-color: var(--bs-dark);
+  color: var(--bs-white);
+  position: relative;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.feature-card {
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--bs-primary);
+}
+
+/* Restaurant List */
+.filter-sidebar {
+  position: sticky;
+  top: 1rem;
+}
+
+.restaurant-card img {
+  height: 200px;
+  object-fit: cover;
+}
+
+/* Restaurant Detail */
+.restaurant-header {
+  position: relative;
+}
+
+.restaurant-header-img {
+  height: 250px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.restaurant-info {
+  position: relative;
+  margin-top: -3rem;
+  background-color: var(--bs-body-bg);
+  border-radius: 0.5rem;
+  z-index: 10;
+}
+
+.category-nav {
+  z-index: 1020;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.menu-item-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-item-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+/* Cart */
+.quantity-control {
+  max-width: 150px;
+}
+
+/* Authentication Forms */
+.auth-form {
+  max-width: 450px;
+  margin: 0 auto;
+}
+
+/* Order Tracking */
+.order-status-steps .step {
+  position: relative;
+}
+
+.order-status-steps .step::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background-color: var(--bs-gray-400);
+  z-index: -1;
+}
+
+.order-status-steps .step:first-child::before {
+  display: none;
+}
+
+.order-status-steps .step.active .step-icon {
+  background-color: var(--bs-primary);
+  color: var(--bs-white);
+}
+
+.order-status-steps .step.completed::before {
+  background-color: var(--bs-primary);
+}
+
+.step-icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--bs-gray-400);
+  color: var(--bs-white);
+  margin: 0 auto 0.5rem;
+}
+
+/* Media Queries */
+@media (max-width: 767.98px) {
+  .restaurant-info {
+    margin-top: -1.5rem;
+  }
+  
+  .category-nav .btn {
+    flex-shrink: 0;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease;
+}
+
+/* Accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Utility Classes */
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bs-gray-200);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--bs-gray-500);
+  border-radius: 20px;
+}

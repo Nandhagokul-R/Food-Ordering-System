@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Food Delivery - Order Confirmation{% endblock %}
+
+{% block content %}
+<div class="container" id="order-detail" data-order-id="{{ order.id }}">
+    <div class="text-center p-5">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Order Success Message -->
+<div class="modal fade" id="order-success-modal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success fa-5x"></i>
+                </div>
+                <h3>Order Placed Successfully!</h3>
+                <p class="mb-0">Thank you for your order. Your food is on its way!</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show success message modal when page loads
+        const orderSuccessModal = new bootstrap.Modal(document.getElementById('order-success-modal'));
+        orderSuccessModal.show();
+        
+        // Close modal after 3 seconds
+        setTimeout(() => {
+            orderSuccessModal.hide();
+        }, 3000);
+    });
+</script>
+{% endblock %}

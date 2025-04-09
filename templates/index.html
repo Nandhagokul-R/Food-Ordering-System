@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Food Delivery - Home{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center mb-5">
+    <div class="container hero-content">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">Delicious Food Delivered to Your Door</h1>
+                <p class="lead mb-4">Order from your favorite restaurants and enjoy fresh meals delivered right to your doorstep.</p>
+                <a href="/restaurants" class="btn btn-primary btn-lg mb-2 me-2">Browse Restaurants</a>
+                {% if not user %}
+                <a href="/register" class="btn btn-outline-light btn-lg mb-2">Sign Up Now</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="container mb-5">
+    <h2 class="text-center mb-4">How It Works</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card h-100 text-center">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h5 class="card-title">Choose a Restaurant</h5>
+                    <p class="card-text">Browse our selection of restaurants and find your favorite cuisines.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card h-100 text-center">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-list-alt"></i>
+                    </div>
+                    <h5 class="card-title">Select Your Meal</h5>
+                    <p class="card-text">Customize your order with our wide variety of menu options and add-ons.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card h-100 text-center">
+                <div class="card-body">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h5 class="card-title">Enjoy Your Delivery</h5>
+                    <p class="card-text">Track your order in real-time and enjoy hot, fresh food delivered to your door.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Restaurants Section -->
+<section class="container mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Featured Restaurants</h2>
+        <a href="/restaurants" class="btn btn-outline-primary">View All</a>
+    </div>
+    
+    <div class="row" id="featured-restaurants">
+        <div class="col-12 text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- App Benefits Section -->
+<section class="bg-dark text-light py-5 mb-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Why Choose Our Food Delivery?</h2>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <i class="fas fa-shipping-fast fa-3x mb-3 text-primary"></i>
+                    <h5>Fast Delivery</h5>
+                    <p class="text-muted">Get your food delivered in under 45 minutes</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <i class="fas fa-hand-holding-usd fa-3x mb-3 text-primary"></i>
+                    <h5>Best Prices</h5>
+                    <p class="text-muted">Enjoy competitive pricing and special offers</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <i class="fas fa-utensils fa-3x mb-3 text-primary"></i>
+                    <h5>Quality Restaurants</h5>
+                    <p class="text-muted">Partnered with the best local restaurants</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <i class="fas fa-map-marked-alt fa-3x mb-3 text-primary"></i>
+                    <h5>Real-time Tracking</h5>
+                    <p class="text-muted">Know exactly when your food will arrive</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call To Action Section -->
+<section class="container text-center mb-5">
+    <div class="card bg-primary text-white">
+        <div class="card-body py-5">
+            <h2 class="card-title mb-3">Ready to Order?</h2>
+            <p class="card-text mb-4">Find your favorite restaurants and enjoy delicious food delivered to your door</p>
+            <a href="/restaurants" class="btn btn-light btn-lg">Order Now</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load featured restaurants
+        const featuredRestaurantsContainer = document.getElementById('featured-restaurants');
+        
+        fetch('/api/restaurants')
+            .then(handleHttpError)
+            .then(response => response.json())
+            .then(data => {
+                if (data.restaurants.length === 0) {
+                    featuredRestaurantsContainer.innerHTML = '<div class="col-12"><div class="alert alert-info">No restaurants available at the moment.</div></div>';
+                    return;
+                }
+                
+                // Display up to 3 featured restaurants
+                featuredRestaurantsContainer.innerHTML = '';
+                
+                const featuredRestaurants = data.restaurants.slice(0, 3);
+                
+                featuredRestaurants.forEach(restaurant => {
+                    const card = document.createElement('div');
+                    card.className = 'col-md-4 mb-4';
+                    card.innerHTML = `
+                        <div class="card h-100 shadow-sm restaurant-card">
+                            <img src="${restaurant.image_url || 'https://via.placeholder.com/300x200?text=Restaurant'}" 
+                                class="card-img-top" alt="${restaurant.name}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="card-title mb-0">${restaurant.name}</h5>
+                                    <span class="badge bg-primary">${restaurant.cuisine_type}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="text-warning">
+                                        ${formatRating(restaurant.rating)}
+                                    </div>
+                                    <span class="text-muted">${formatPriceRange(restaurant.price_range)}</span>
+                                </div>
+                                <p class="card-text text-muted small">${restaurant.description.substring(0, 80)}${restaurant.description.length > 80 ? '...' : ''}</p>
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0">
+                                <a href="/restaurants/${restaurant.id}" class="btn btn-primary btn-sm w-100">View Menu</a>
+                            </div>
+                        </div>
+                    `;
+                    
+                    featuredRestaurantsContainer.appendChild(card);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading featured restaurants:', error);
+                featuredRestaurantsContainer.innerHTML = '<div class="col-12"><div class="alert alert-danger">Error loading restaurants. Please try again later.</div></div>';
+            });
+    });
+</script>
+{% endblock %}

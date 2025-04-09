@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Food Delivery - My Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">My Profile</h1>
+    
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form id="profile-form">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" disabled>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="first-name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first-name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last-name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last-name" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="phone-number" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phone-number">
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <h6 class="mb-3">Change Password</h6>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="password">
+                            <div class="form-text">Leave blank to keep current password.</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="confirm-password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm-password">
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Addresses -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Saved Addresses</h5>
+                </div>
+                <div class="card-body">
+                    <div id="address-list">
+                        <div class="text-center p-3">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add New Address -->
+            <div class="card">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Add New Address</h5>
+                </div>
+                <div class="card-body">
+                    <form id="new-address-form">
+                        <div class="mb-3">
+                            <label for="address-line1" class="form-label">Address Line 1</label>
+                            <input type="text" class="form-control" id="address-line1" name="address_line1" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="address-line2" class="form-label">Address Line 2 (Optional)</label>
+                            <input type="text" class="form-control" id="address-line2" name="address_line2">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" name="city" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="state" class="form-label">State</label>
+                                <input type="text" class="form-control" id="state" name="state" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="postal-code" class="form-label">Postal Code</label>
+                            <input type="text" class="form-control" id="postal-code" name="postal_code" required>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="is-default" name="is_default">
+                            <label class="form-check-label" for="is-default">
+                                Set as default address
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Add Address</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

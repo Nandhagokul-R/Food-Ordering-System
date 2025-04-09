@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Food Delivery - Restaurant Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Restaurant Header with Image -->
+    <div class="restaurant-header mb-4" id="restaurant-detail" data-restaurant-id="{{ restaurant.id }}">
+        <img id="restaurant-image" src="{{ restaurant.image_url or 'https://via.placeholder.com/1200x300?text=Restaurant' }}" alt="{{ restaurant.name }}" class="restaurant-header-img rounded">
+        
+        <div class="card restaurant-info shadow-sm">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h1 id="restaurant-name" class="mb-2">{{ restaurant.name }}</h1>
+                        <p id="restaurant-description" class="text-muted mb-2">{{ restaurant.description }}</p>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span id="restaurant-cuisine" class="badge bg-primary">{{ restaurant.cuisine_type }}</span>
+                            <span id="restaurant-price" class="badge bg-secondary">{{ '$' * restaurant.price_range }}</span>
+                            <div id="restaurant-rating" class="text-warning">
+                                <!-- Rating stars will be filled by JS -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span><i class="fas fa-clock me-2"></i> Delivery Time:</span>
+                                    <span id="restaurant-delivery-time">{{ restaurant.delivery_time_min }}-{{ restaurant.delivery_time_max }} min</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span><i class="fas fa-truck me-2"></i> Delivery Fee:</span>
+                                    <span id="restaurant-delivery-fee">${{ "%.2f"|format(restaurant.delivery_fee) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Restaurant Menu -->
+    <div id="menu-container" class="mt-4">
+        <div class="text-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

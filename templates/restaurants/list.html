@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Food Delivery - Restaurants{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Restaurants</h1>
+            <p class="text-muted">Discover your favorite restaurants and cuisines</p>
+        </div>
+        <div class="col-md-4">
+            <form id="search-form" class="d-flex">
+                <input type="search" id="search-input" class="form-control me-2" placeholder="Search restaurants...">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card filter-sidebar">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form id="filter-form">
+                        <!-- Cuisine Types -->
+                        <div class="mb-3">
+                            <h6>Cuisine</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="American" id="cuisine-american" name="cuisine">
+                                <label class="form-check-label" for="cuisine-american">American</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Italian" id="cuisine-italian" name="cuisine">
+                                <label class="form-check-label" for="cuisine-italian">Italian</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Japanese" id="cuisine-japanese" name="cuisine">
+                                <label class="form-check-label" for="cuisine-japanese">Japanese</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Mexican" id="cuisine-mexican" name="cuisine">
+                                <label class="form-check-label" for="cuisine-mexican">Mexican</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Thai" id="cuisine-thai" name="cuisine">
+                                <label class="form-check-label" for="cuisine-thai">Thai</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Price Range -->
+                        <div class="mb-3">
+                            <h6>Price Range</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="price-1" name="price_range">
+                                <label class="form-check-label" for="price-1">$</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="2" id="price-2" name="price_range">
+                                <label class="form-check-label" for="price-2">$$</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="3" id="price-3" name="price_range">
+                                <label class="form-check-label" for="price-3">$$$</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="4" id="price-4" name="price_range">
+                                <label class="form-check-label" for="price-4">$$$$</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Rating -->
+                        <div class="mb-3">
+                            <h6>Rating</h6>
+                            <select class="form-select" id="rating-filter">
+                                <option value="0">All Ratings</option>
+                                <option value="3">3+ Stars</option>
+                                <option value="3.5">3.5+ Stars</option>
+                                <option value="4">4+ Stars</option>
+                                <option value="4.5">4.5+ Stars</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Restaurant List -->
+        <div class="col-md-9">
+            <!-- Sort Options -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <p class="text-muted mb-0"><span id="restaurant-count">0</span> restaurants found</p>
+                <div class="d-flex align-items-center">
+                    <label for="sort-select" class="me-2">Sort by:</label>
+                    <select class="form-select form-select-sm" id="sort-select" style="width: auto;">
+                        <option value="rating-desc">Rating (High to Low)</option>
+                        <option value="rating-asc">Rating (Low to High)</option>
+                        <option value="name-asc">Name (A to Z)</option>
+                        <option value="name-desc">Name (Z to A)</option>
+                        <option value="price-asc">Price (Low to High)</option>
+                        <option value="price-desc">Price (High to Low)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Restaurant Grid -->
+            <div class="row" id="restaurant-list">
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Update restaurant count when restaurants are loaded
+        const updateRestaurantCount = (count) => {
+            document.getElementById('restaurant-count').textContent = count;
+        };
+        
+        // Override fetchRestaurants to update count
+        const originalFetchRestaurants = window.fetchRestaurants;
+        window.fetchRestaurants = function(searchTerm = '') {
+            originalFetchRestaurants(searchTerm);
+            
+            // Update count after fetch completes
+            fetch(`/api/restaurants?${new URLSearchParams(searchTerm ? { search: searchTerm } : {})}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateRestaurantCount(data.restaurants.length);
+                })
+                .catch(error => {
+                    console.error('Error fetching restaurant count:', error);
+                });
+        };
+    });
+</script>
+{% endblock %}
