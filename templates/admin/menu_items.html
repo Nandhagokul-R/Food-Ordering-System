@@ -1,0 +1,664 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Menu Items{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Menu Items Management</h1>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Menu Items</h5>
+                    <button class="btn btn-sm btn-light" id="add-menu-item-btn">
+                        <i class="fas fa-plus me-2"></i>Add New Item
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="input-group mb-3">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="menu-item-search" placeholder="Search menu items...">
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="menu-items-table">
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 1rem;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="filter-restaurant" class="form-label">Restaurant</label>
+                        <select class="form-select" id="filter-restaurant">
+                            <option value="">All Restaurants</option>
+                            {% for restaurant in restaurants %}
+                            <option value="{{ restaurant.id }}">{{ restaurant.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="filter-category" class="form-label">Category</label>
+                        <select class="form-select" id="filter-category">
+                            <option value="">All Categories</option>
+                            {% for category in menu_categories %}
+                            <option value="{{ category.id }}">{{ category.name }} ({{ category.restaurant.name }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Dietary Preferences</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filter-vegetarian">
+                            <label class="form-check-label" for="filter-vegetarian">Vegetarian</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filter-vegan">
+                            <label class="form-check-label" for="filter-vegan">Vegan</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filter-gluten-free">
+                            <label class="form-check-label" for="filter-gluten-free">Gluten Free</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="filter-status" id="filter-status-all" value="" checked>
+                            <label class="form-check-label" for="filter-status-all">All</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="filter-status" id="filter-status-available" value="true">
+                            <label class="form-check-label" for="filter-status-available">Available</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="filter-status" id="filter-status-unavailable" value="false">
+                            <label class="form-check-label" for="filter-status-unavailable">Unavailable</label>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary w-100" id="apply-filters-btn">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Menu Item Modal -->
+<div class="modal fade" id="menu-item-modal" tabindex="-1" aria-labelledby="menu-item-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="menu-item-modal-label">Add New Menu Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="menu-item-form">
+                    <input type="hidden" id="menu-item-id">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="menu-item-name" class="form-label">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="menu-item-name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="menu-item-category" class="form-label">Category <span class="text-danger">*</span></label>
+                            <select class="form-select" id="menu-item-category" required>
+                                <option value="">Select Category</option>
+                                {% for category in menu_categories %}
+                                <option value="{{ category.id }}">{{ category.name }} ({{ category.restaurant.name }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="menu-item-description" class="form-label">Description</label>
+                        <textarea class="form-control" id="menu-item-description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="menu-item-price" class="form-label">Price <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" id="menu-item-price" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="menu-item-image" class="form-label">Image URL</label>
+                            <input type="url" class="form-control" id="menu-item-image">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="menu-item-spice" class="form-label">Spice Level</label>
+                            <select class="form-select" id="menu-item-spice">
+                                <option value="0">Not Spicy</option>
+                                <option value="1">Mild</option>
+                                <option value="2">Medium</option>
+                                <option value="3">Hot</option>
+                                <option value="4">Very Hot</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Dietary Options</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="menu-item-vegetarian">
+                                <label class="form-check-label" for="menu-item-vegetarian">Vegetarian</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="menu-item-vegan">
+                                <label class="form-check-label" for="menu-item-vegan">Vegan</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="menu-item-gluten-free">
+                                <label class="form-check-label" for="menu-item-gluten-free">Gluten Free</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="menu-item-available" checked>
+                        <label class="form-check-label" for="menu-item-available">Available for ordering</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger me-auto d-none" id="delete-menu-item-btn">Delete</button>
+                <button type="button" class="btn btn-primary" id="save-menu-item-btn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="delete-confirm-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this menu item? This action cannot be undone.</p>
+                <p class="fw-bold" id="delete-item-name"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const menuItemsTable = document.getElementById('menu-items-table');
+        const menuItemForm = document.getElementById('menu-item-form');
+        const menuItemModal = new bootstrap.Modal(document.getElementById('menu-item-modal'));
+        const deleteConfirmModal = new bootstrap.Modal(document.getElementById('delete-confirm-modal'));
+        
+        // Menu item elements
+        const menuItemId = document.getElementById('menu-item-id');
+        const menuItemName = document.getElementById('menu-item-name');
+        const menuItemCategory = document.getElementById('menu-item-category');
+        const menuItemDescription = document.getElementById('menu-item-description');
+        const menuItemPrice = document.getElementById('menu-item-price');
+        const menuItemImage = document.getElementById('menu-item-image');
+        const menuItemSpice = document.getElementById('menu-item-spice');
+        const menuItemVegetarian = document.getElementById('menu-item-vegetarian');
+        const menuItemVegan = document.getElementById('menu-item-vegan');
+        const menuItemGlutenFree = document.getElementById('menu-item-gluten-free');
+        const menuItemAvailable = document.getElementById('menu-item-available');
+        
+        // Filter elements
+        const filterRestaurant = document.getElementById('filter-restaurant');
+        const filterCategory = document.getElementById('filter-category');
+        const filterVegetarian = document.getElementById('filter-vegetarian');
+        const filterVegan = document.getElementById('filter-vegan');
+        const filterGlutenFree = document.getElementById('filter-gluten-free');
+        const filterStatus = document.querySelector('input[name="filter-status"]:checked');
+        
+        // Buttons
+        const addMenuItemBtn = document.getElementById('add-menu-item-btn');
+        const saveMenuItemBtn = document.getElementById('save-menu-item-btn');
+        const deleteMenuItemBtn = document.getElementById('delete-menu-item-btn');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const applyFiltersBtn = document.getElementById('apply-filters-btn');
+        
+        // Load menu items
+        loadMenuItems();
+        
+        // Event listeners
+        addMenuItemBtn.addEventListener('click', showAddItemModal);
+        saveMenuItemBtn.addEventListener('click', saveMenuItem);
+        deleteMenuItemBtn.addEventListener('click', showDeleteConfirmation);
+        confirmDeleteBtn.addEventListener('click', deleteMenuItem);
+        applyFiltersBtn.addEventListener('click', loadMenuItems);
+        
+        // Search functionality
+        const searchInput = document.getElementById('menu-item-search');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = menuItemsTable.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                if (row.querySelectorAll('td').length > 1) {
+                    const name = row.querySelector('td:first-child').textContent.toLowerCase();
+                    const category = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    
+                    if (name.includes(searchTerm) || category.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        });
+        
+        // Load menu items with filters
+        function loadMenuItems() {
+            // Get filter values
+            const restaurant = filterRestaurant.value;
+            const category = filterCategory.value;
+            const vegetarian = filterVegetarian.checked;
+            const vegan = filterVegan.checked;
+            const glutenFree = filterGlutenFree.checked;
+            const status = document.querySelector('input[name="filter-status"]:checked').value;
+            
+            // Show loading
+            menuItemsTable.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            // Fetch menu items
+            fetch('/api/admin/menu-items')
+                .then(handleHttpError)
+                .then(response => response.json())
+                .then(data => {
+                    let menuItems = data.menu_items;
+                    
+                    // Apply filters
+                    if (restaurant) {
+                        const categoryIds = Array.from(document.querySelectorAll('#filter-category option'))
+                            .filter(option => {
+                                const categoryText = option.text;
+                                return categoryText.includes(`(${document.getElementById('filter-restaurant').options[document.getElementById('filter-restaurant').selectedIndex].text})`);
+                            })
+                            .map(option => option.value);
+                        
+                        menuItems = menuItems.filter(item => categoryIds.includes(item.category_id.toString()));
+                    }
+                    
+                    if (category) {
+                        menuItems = menuItems.filter(item => item.category_id.toString() === category);
+                    }
+                    
+                    if (vegetarian) {
+                        menuItems = menuItems.filter(item => item.is_vegetarian);
+                    }
+                    
+                    if (vegan) {
+                        menuItems = menuItems.filter(item => item.is_vegan);
+                    }
+                    
+                    if (glutenFree) {
+                        menuItems = menuItems.filter(item => item.is_gluten_free);
+                    }
+                    
+                    if (status) {
+                        const isAvailable = status === 'true';
+                        menuItems = menuItems.filter(item => item.is_available === isAvailable);
+                    }
+                    
+                    // Render table
+                    renderMenuItemsTable(menuItems);
+                })
+                .catch(error => {
+                    console.error('Error loading menu items:', error);
+                    menuItemsTable.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center text-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Error loading menu items. Please try again.
+                            </td>
+                        </tr>
+                    `;
+                });
+        }
+        
+        // Render menu items table
+        function renderMenuItemsTable(menuItems) {
+            if (menuItems.length === 0) {
+                menuItemsTable.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center">
+                            No menu items found. Try adjusting your filters or add a new item.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            menuItems.forEach(item => {
+                const categoryName = document.querySelector(`#menu-item-category option[value="${item.category_id}"]`)?.textContent || 'Unknown Category';
+                
+                html += `
+                    <tr data-id="${item.id}">
+                        <td>${item.name}</td>
+                        <td>${categoryName}</td>
+                        <td>$${item.price.toFixed(2)}</td>
+                        <td>
+                            <span class="badge ${item.is_available ? 'bg-success' : 'bg-danger'}">
+                                ${item.is_available ? 'Available' : 'Unavailable'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary edit-btn" data-id="${item.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            menuItemsTable.innerHTML = html;
+            
+            // Add event listeners to edit buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    showEditItemModal(id);
+                });
+            });
+        }
+        
+        // Show add item modal
+        function showAddItemModal() {
+            // Reset form
+            menuItemForm.reset();
+            menuItemId.value = '';
+            
+            // Hide delete button
+            deleteMenuItemBtn.classList.add('d-none');
+            
+            // Update modal title
+            document.getElementById('menu-item-modal-label').textContent = 'Add New Menu Item';
+            
+            // Show modal
+            menuItemModal.show();
+        }
+        
+        // Show edit item modal
+        function showEditItemModal(id) {
+            // Show loading in modal
+            menuItemForm.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Show modal
+            menuItemModal.show();
+            
+            // Fetch menu item details
+            fetch(`/api/admin/menu-items/${id}`)
+                .then(handleHttpError)
+                .then(response => response.json())
+                .then(item => {
+                    // Reset form
+                    menuItemForm.innerHTML = `
+                        <input type="hidden" id="menu-item-id">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="menu-item-name" class="form-label">Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="menu-item-name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="menu-item-category" class="form-label">Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="menu-item-category" required>
+                                    <option value="">Select Category</option>
+                                    {% for category in menu_categories %}
+                                    <option value="{{ category.id }}">{{ category.name }} ({{ category.restaurant.name }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="menu-item-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="menu-item-description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="menu-item-price" class="form-label">Price <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="menu-item-price" min="0" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="menu-item-image" class="form-label">Image URL</label>
+                                <input type="url" class="form-control" id="menu-item-image">
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="menu-item-spice" class="form-label">Spice Level</label>
+                                <select class="form-select" id="menu-item-spice">
+                                    <option value="0">Not Spicy</option>
+                                    <option value="1">Mild</option>
+                                    <option value="2">Medium</option>
+                                    <option value="3">Hot</option>
+                                    <option value="4">Very Hot</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Dietary Options</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="menu-item-vegetarian">
+                                    <label class="form-check-label" for="menu-item-vegetarian">Vegetarian</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="menu-item-vegan">
+                                    <label class="form-check-label" for="menu-item-vegan">Vegan</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="menu-item-gluten-free">
+                                    <label class="form-check-label" for="menu-item-gluten-free">Gluten Free</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="menu-item-available" checked>
+                            <label class="form-check-label" for="menu-item-available">Available for ordering</label>
+                        </div>
+                    `;
+                    
+                    // Update field references
+                    const menuItemId = document.getElementById('menu-item-id');
+                    const menuItemName = document.getElementById('menu-item-name');
+                    const menuItemCategory = document.getElementById('menu-item-category');
+                    const menuItemDescription = document.getElementById('menu-item-description');
+                    const menuItemPrice = document.getElementById('menu-item-price');
+                    const menuItemImage = document.getElementById('menu-item-image');
+                    const menuItemSpice = document.getElementById('menu-item-spice');
+                    const menuItemVegetarian = document.getElementById('menu-item-vegetarian');
+                    const menuItemVegan = document.getElementById('menu-item-vegan');
+                    const menuItemGlutenFree = document.getElementById('menu-item-gluten-free');
+                    const menuItemAvailable = document.getElementById('menu-item-available');
+                    
+                    // Fill form with item data
+                    menuItemId.value = item.id;
+                    menuItemName.value = item.name;
+                    menuItemCategory.value = item.category_id;
+                    menuItemDescription.value = item.description || '';
+                    menuItemPrice.value = item.price;
+                    menuItemImage.value = item.image_url || '';
+                    menuItemSpice.value = item.spice_level;
+                    menuItemVegetarian.checked = item.is_vegetarian;
+                    menuItemVegan.checked = item.is_vegan;
+                    menuItemGlutenFree.checked = item.is_gluten_free;
+                    menuItemAvailable.checked = item.is_available;
+                    
+                    // Show delete button
+                    document.getElementById('delete-menu-item-btn').classList.remove('d-none');
+                    
+                    // Update modal title
+                    document.getElementById('menu-item-modal-label').textContent = 'Edit Menu Item';
+                })
+                .catch(error => {
+                    console.error('Error loading menu item details:', error);
+                    showError('Error loading menu item details. Please try again.');
+                    menuItemModal.hide();
+                });
+        }
+        
+        // Save menu item (create or update)
+        function saveMenuItem() {
+            // Validate form
+            if (!menuItemForm.checkValidity()) {
+                menuItemForm.reportValidity();
+                return;
+            }
+            
+            // Collect form data
+            const data = {
+                category_id: parseInt(menuItemCategory.value),
+                name: menuItemName.value,
+                description: menuItemDescription.value,
+                price: parseFloat(menuItemPrice.value),
+                image_url: menuItemImage.value,
+                spice_level: parseInt(menuItemSpice.value),
+                is_vegetarian: menuItemVegetarian.checked,
+                is_vegan: menuItemVegan.checked,
+                is_gluten_free: menuItemGlutenFree.checked,
+                is_available: menuItemAvailable.checked
+            };
+            
+            // Show loading
+            saveMenuItemBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+            saveMenuItemBtn.disabled = true;
+            
+            const id = menuItemId.value;
+            const url = id ? `/api/admin/menu-items/${id}` : '/api/admin/menu-items';
+            const method = id ? 'PUT' : 'POST';
+            
+            // Save menu item
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(handleHttpError)
+                .then(response => response.json())
+                .then(result => {
+                    showSuccess(result.message);
+                    menuItemModal.hide();
+                    loadMenuItems();
+                })
+                .catch(error => {
+                    console.error('Error saving menu item:', error);
+                    showError('Error saving menu item. Please try again.');
+                })
+                .finally(() => {
+                    saveMenuItemBtn.innerHTML = 'Save';
+                    saveMenuItemBtn.disabled = false;
+                });
+        }
+        
+        // Show delete confirmation
+        function showDeleteConfirmation() {
+            const itemName = menuItemName.value;
+            document.getElementById('delete-item-name').textContent = itemName;
+            
+            // Hide menu item modal and show delete confirmation
+            menuItemModal.hide();
+            deleteConfirmModal.show();
+        }
+        
+        // Delete menu item
+        function deleteMenuItem() {
+            const id = menuItemId.value;
+            
+            // Show loading
+            confirmDeleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Deleting...';
+            confirmDeleteBtn.disabled = true;
+            
+            // Delete menu item
+            fetch(`/api/admin/menu-items/${id}`, {
+                method: 'DELETE'
+            })
+                .then(handleHttpError)
+                .then(response => response.json())
+                .then(result => {
+                    showSuccess(result.message);
+                    deleteConfirmModal.hide();
+                    loadMenuItems();
+                })
+                .catch(error => {
+                    console.error('Error deleting menu item:', error);
+                    showError('Error deleting menu item. Please try again.');
+                })
+                .finally(() => {
+                    confirmDeleteBtn.innerHTML = 'Delete';
+                    confirmDeleteBtn.disabled = false;
+                });
+        }
+    });
+</script>
+{% endblock %}

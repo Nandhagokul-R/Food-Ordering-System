@@ -55,6 +55,10 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="/profile">Profile</a></li>
                             <li><a class="dropdown-item" href="/orders">Order History</a></li>
+                            {% if user and user.role and user.role.name == 'ADMIN' %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/admin">Admin Dashboard</a></li>
+                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="#" id="logout-btn">Logout</a></li>
                         </ul>

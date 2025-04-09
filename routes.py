@@ -17,6 +17,20 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        
+        user = User.query.get(session['user_id'])
+        if not user or user.role != UserRole.ADMIN:
+            flash('You do not have permission to access this page', 'error')
+            return redirect(url_for('index'))
+            
+        return f(*args, **kwargs)
+    return decorated_function
+
 def get_current_user():
     if 'user_id' in session:
         return User.query.get(session['user_id'])
@@ -93,6 +107,24 @@ def profile():
     user = get_current_user()
     addresses = Address.query.filter_by(user_id=user.id).all()
     return render_template('profile/profile.html', user=user, addresses=addresses)
+
+# Admin Routes
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    return render_template('admin/dashboard.html', user=get_current_user())
+
+@app.route('/admin/menu-items')
+@admin_required
+def admin_menu_items():
+    restaurants = Restaurant.query.all()
+    menu_items = MenuItem.query.order_by(MenuItem.name).all()
+    menu_categories = MenuCategory.query.all()
+    return render_template('admin/menu_items.html', 
+                          user=get_current_user(),
+                          restaurants=restaurants,
+                          menu_items=menu_items,
+                          menu_categories=menu_categories)
 
 # API Routes (JSON)
 @app.route('/api/auth/register', methods=['POST'])
@@ -654,3 +686,98 @@ def api_profile():
             'message': 'Profile updated successfully',
             'user': user.to_dict()
         }), 200
+
+# Admin API Routes
+@app.route('/api/admin/menu-items', methods=['GET', 'POST'])
+@admin_required
+def api_admin_menu_items():
+    if request.method == 'GET':
+        menu_items = MenuItem.query.all()
+        return jsonify({
+            'menu_items': [item.to_dict() for item in menu_items]
+        }), 200
+    
+    elif request.method == 'POST':
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['category_id', 'name', 'price']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Create new menu item
+        menu_item = MenuItem(
+            category_id=data['category_id'],
+            name=data['name'],
+            description=data.get('description', ''),
+            price=data['price'],
+            image_url=data.get('image_url', ''),
+            is_vegetarian=data.get('is_vegetarian', False),
+            is_vegan=data.get('is_vegan', False),
+            is_gluten_free=data.get('is_gluten_free', False),
+            spice_level=data.get('spice_level', 0),
+            is_available=data.get('is_available', True)
+        )
+        
+        db.session.add(menu_item)
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Menu item added successfully',
+            'menu_item': menu_item.to_dict()
+        }), 201
+
+@app.route('/api/admin/menu-items/<int:menu_item_id>', methods=['GET', 'PUT', 'DELETE'])
+@admin_required
+def api_admin_menu_item_detail(menu_item_id):
+    menu_item = MenuItem.query.get_or_404(menu_item_id)
+    
+    if request.method == 'GET':
+        return jsonify(menu_item.to_dict()), 200
+    
+    elif request.method == 'PUT':
+        data = request.json
+        
+        # Update menu item fields
+        if 'category_id' in data:
+            menu_item.category_id = data['category_id']
+        if 'name' in data:
+            menu_item.name = data['name']
+        if 'description' in data:
+            menu_item.description = data['description']
+        if 'price' in data:
+            menu_item.price = data['price']
+        if 'image_url' in data:
+            menu_item.image_url = data['image_url']
+        if 'is_vegetarian' in data:
+            menu_item.is_vegetarian = data['is_vegetarian']
+        if 'is_vegan' in data:
+            menu_item.is_vegan = data['is_vegan']
+        if 'is_gluten_free' in data:
+            menu_item.is_gluten_free = data['is_gluten_free']
+        if 'spice_level' in data:
+            menu_item.spice_level = data['spice_level']
+        if 'is_available' in data:
+            menu_item.is_available = data['is_available']
+        
+        menu_item.updated_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({
+            'message': 'Menu item updated successfully',
+            'menu_item': menu_item.to_dict()
+        }), 200
+    
+    elif request.method == 'DELETE':
+        # Check if menu item has any customization groups
+        customization_groups = CustomizationGroup.query.filter_by(menu_item_id=menu_item.id).all()
+        for group in customization_groups:
+            # Delete options for each group
+            CustomizationOption.query.filter_by(group_id=group.id).delete()
+            db.session.delete(group)
+        
+        db.session.delete(menu_item)
+        db.session.commit()
+        
+        return jsonify({'message': 'Menu item deleted successfully'}), 200
