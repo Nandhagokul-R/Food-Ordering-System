@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Food Delivery - Add Menu Item{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Add New Menu Item</h1>
+    
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="list-group">
+                <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+                <a href="{{ url_for('admin_restaurants') }}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-utensils me-2"></i> Restaurants
+                </a>
+                <a href="#" class="list-group-item list-group-item-action disabled">
+                    <i class="fas fa-users me-2"></i> Users
+                </a>
+                <a href="#" class="list-group-item list-group-item-action disabled">
+                    <i class="fas fa-file-invoice-dollar me-2"></i> Orders
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <div class="card mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Menu Item Details</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('admin_add_menu_item') }}" method="post" enctype="multipart/form-data">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="restaurant_id" class="form-label">Restaurant</label>
+                                <select class="form-select" id="restaurant_id" name="restaurant_id" required onchange="updateCategories()">
+                                    <option value="" selected disabled>Select Restaurant</option>
+                                    {% for restaurant in restaurants %}
+                                    <option value="{{ restaurant.id }}">{{ restaurant.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="category_id" class="form-label">Category</label>
+                                <select class="form-select" id="category_id" name="category_id" required disabled>
+                                    <option value="" selected disabled>Select Category</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Item Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="price" class="form-label">Price ($)</label>
+                            <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="image" class="form-label">Image</label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                            <div class="form-text">Upload an image or provide an image URL below.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="image_url" class="form-label">Image URL (Optional)</label>
+                            <input type="url" class="form-control" id="image_url" name="image_url" placeholder="https://example.com/image.jpg">
+                            <div class="form-text">If you don't upload an image, you can provide a URL to an existing image.</div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Dietary Options</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_vegetarian" name="is_vegetarian">
+                                    <label class="form-check-label" for="is_vegetarian">
+                                        Vegetarian
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_vegan" name="is_vegan">
+                                    <label class="form-check-label" for="is_vegan">
+                                        Vegan
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="is_gluten_free" name="is_gluten_free">
+                                    <label class="form-check-label" for="is_gluten_free">
+                                        Gluten Free
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="spice_level" class="form-label">Spice Level</label>
+                                <select class="form-select" id="spice_level" name="spice_level">
+                                    <option value="0">No Spice</option>
+                                    <option value="1">Mild</option>
+                                    <option value="2">Medium</option>
+                                    <option value="3">Hot</option>
+                                    <option value="4">Very Hot</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin_restaurants') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Add Menu Item</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function updateCategories() {
+        const restaurantId = document.getElementById('restaurant_id').value;
+        const categorySelect = document.getElementById('category_id');
+        
+        // Clear existing options
+        categorySelect.innerHTML = '<option value="" selected disabled>Select Category</option>';
+        
+        if (!restaurantId) {
+            categorySelect.disabled = true;
+            return;
+        }
+        
+        // Fetch categories for selected restaurant
+        fetch(`/api/restaurants/${restaurantId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.categories && data.categories.length > 0) {
+                    data.categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.id;
+                        option.textContent = category.name;
+                        categorySelect.appendChild(option);
+                    });
+                    categorySelect.disabled = false;
+                } else {
+                    categorySelect.innerHTML += '<option value="" disabled>No categories available</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching categories:', error);
+                categorySelect.innerHTML += '<option value="" disabled>Error loading categories</option>';
+            });
+    }
+</script>
+{% endblock %}

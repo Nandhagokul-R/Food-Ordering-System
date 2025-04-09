@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 import json
 import logging
 from functools import wraps
+import os
+from werkzeug.utils import secure_filename
 
 # Helper functions
 def login_required(f):
@@ -93,6 +95,162 @@ def profile():
     user = get_current_user()
     addresses = Address.query.filter_by(user_id=user.id).all()
     return render_template('profile/profile.html', user=user, addresses=addresses)
+
+# Admin Routes
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = get_current_user()
+        if not user or user.role != UserRole.ADMIN:
+            flash('You do not have permission to access this page', 'error')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    return render_template('admin/dashboard.html', user=get_current_user())
+
+@app.route('/admin/restaurants')
+@login_required
+@admin_required
+def admin_restaurants():
+    restaurants = Restaurant.query.all()
+    return render_template('admin/restaurants.html', restaurants=restaurants, user=get_current_user())
+
+@app.route('/admin/restaurants/<int:restaurant_id>/menu')
+@login_required
+@admin_required
+def admin_menu(restaurant_id):
+    restaurant = Restaurant.query.get_or_404(restaurant_id)
+    categories = MenuCategory.query.filter_by(restaurant_id=restaurant_id).order_by(MenuCategory.order).all()
+    return render_template('admin/menu.html', restaurant=restaurant, categories=categories, user=get_current_user())
+
+@app.route('/admin/menu-items/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_add_menu_item():
+    if request.method == 'GET':
+        restaurants = Restaurant.query.all()
+        categories = MenuCategory.query.all()
+        return render_template('admin/add_menu_item.html', restaurants=restaurants, categories=categories, user=get_current_user())
+    
+    elif request.method == 'POST':
+        try:
+            # Get form data
+            name = request.form.get('name')
+            description = request.form.get('description')
+            price = float(request.form.get('price'))
+            category_id = int(request.form.get('category_id'))
+            is_vegetarian = 'is_vegetarian' in request.form
+            is_vegan = 'is_vegan' in request.form
+            is_gluten_free = 'is_gluten_free' in request.form
+            spice_level = int(request.form.get('spice_level', 0))
+            
+            # Handle image upload
+            image_url = request.form.get('image_url')
+            if 'image' in request.files and request.files['image'].filename:
+                image = request.files['image']
+                filename = secure_filename(image.filename)
+                # Make sure static/uploads directory exists
+                os.makedirs('static/uploads', exist_ok=True)
+                image_path = os.path.join('static/uploads', filename)
+                image.save(image_path)
+                image_url = '/' + image_path  # Save relative URL
+            
+            # Create menu item
+            menu_item = MenuItem(
+                category_id=category_id,
+                name=name,
+                description=description,
+                price=price,
+                image_url=image_url,
+                is_vegetarian=is_vegetarian,
+                is_vegan=is_vegan,
+                is_gluten_free=is_gluten_free,
+                spice_level=spice_level,
+                is_available=True
+            )
+            
+            db.session.add(menu_item)
+            db.session.commit()
+            
+            flash(f'Menu item "{name}" added successfully', 'success')
+            return redirect(url_for('admin_menu', restaurant_id=MenuCategory.query.get(category_id).restaurant_id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error adding menu item: {str(e)}', 'error')
+            return redirect(url_for('admin_add_menu_item'))
+
+@app.route('/admin/menu-items/<int:item_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_edit_menu_item(item_id):
+    menu_item = MenuItem.query.get_or_404(item_id)
+    
+    if request.method == 'GET':
+        restaurants = Restaurant.query.all()
+        categories = MenuCategory.query.all()
+        return render_template('admin/edit_menu_item.html', 
+                              menu_item=menu_item, 
+                              restaurants=restaurants, 
+                              categories=categories, 
+                              user=get_current_user())
+    
+    elif request.method == 'POST':
+        try:
+            # Update menu item data
+            menu_item.name = request.form.get('name')
+            menu_item.description = request.form.get('description')
+            menu_item.price = float(request.form.get('price'))
+            menu_item.category_id = int(request.form.get('category_id'))
+            menu_item.is_vegetarian = 'is_vegetarian' in request.form
+            menu_item.is_vegan = 'is_vegan' in request.form
+            menu_item.is_gluten_free = 'is_gluten_free' in request.form
+            menu_item.spice_level = int(request.form.get('spice_level', 0))
+            menu_item.is_available = 'is_available' in request.form
+            
+            # Handle image upload
+            if 'image' in request.files and request.files['image'].filename:
+                image = request.files['image']
+                filename = secure_filename(image.filename)
+                # Make sure static/uploads directory exists
+                os.makedirs('static/uploads', exist_ok=True)
+                image_path = os.path.join('static/uploads', filename)
+                image.save(image_path)
+                menu_item.image_url = '/' + image_path  # Save relative URL
+            elif request.form.get('image_url'):
+                menu_item.image_url = request.form.get('image_url')
+            
+            db.session.commit()
+            
+            flash(f'Menu item "{menu_item.name}" updated successfully', 'success')
+            return redirect(url_for('admin_menu', restaurant_id=MenuCategory.query.get(menu_item.category_id).restaurant_id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating menu item: {str(e)}', 'error')
+            return redirect(url_for('admin_edit_menu_item', item_id=item_id))
+
+@app.route('/admin/menu-items/<int:item_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_menu_item(item_id):
+    menu_item = MenuItem.query.get_or_404(item_id)
+    restaurant_id = MenuCategory.query.get(menu_item.category_id).restaurant_id
+    
+    try:
+        db.session.delete(menu_item)
+        db.session.commit()
+        flash(f'Menu item "{menu_item.name}" deleted successfully', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting menu item: {str(e)}', 'error')
+    
+    return redirect(url_for('admin_menu', restaurant_id=restaurant_id))
 
 # API Routes (JSON)
 @app.route('/api/auth/register', methods=['POST'])

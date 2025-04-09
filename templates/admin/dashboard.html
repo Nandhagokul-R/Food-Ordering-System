@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Food Delivery - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="list-group">
+                <a href="{{ url_for('admin_dashboard') }}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+                <a href="{{ url_for('admin_restaurants') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-utensils me-2"></i> Restaurants
+                </a>
+                <a href="#" class="list-group-item list-group-item-action disabled">
+                    <i class="fas fa-users me-2"></i> Users
+                </a>
+                <a href="#" class="list-group-item list-group-item-action disabled">
+                    <i class="fas fa-file-invoice-dollar me-2"></i> Orders
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Welcome, Admin!</h5>
+                </div>
+                <div class="card-body">
+                    <p>Use the admin dashboard to manage restaurants, menu items, users, and orders. Select an option from the menu on the left to get started.</p>
+                    <p>Current admin features:</p>
+                    <ul>
+                        <li>View and manage restaurants</li>
+                        <li>Edit restaurant menus and add new menu items</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-sm-6 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-utensils fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Manage Restaurants</h5>
+                            <p class="card-text">View, edit, and manage restaurant information and menus.</p>
+                            <a href="{{ url_for('admin_restaurants') }}" class="btn btn-primary">Go to Restaurants</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-sm-6 mb-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body">
+                            <i class="fas fa-home fa-3x text-primary mb-3"></i>
+                            <p class="card-text">Return to the main website to see how customers experience your food delivery service.</p>
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">Go to Home Page</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

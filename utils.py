@@ -20,7 +20,19 @@ def initialize_demo_data():
         first_name="Demo",
         last_name="User",
         phone_number="555-123-4567",
-        password_hash=generate_password_hash("password123")
+        password_hash=generate_password_hash("password123"),
+        role=UserRole.CUSTOMER
+    )
+    
+    # Create admin user
+    admin_user = User(
+        username="aADMIN",
+        email="admin@example.com",
+        first_name="Admin",
+        last_name="User",
+        phone_number="555-987-6543",
+        password_hash=generate_password_hash("admin@123"),
+        role=UserRole.ADMIN
     )
     
     # Create demo user address
@@ -34,6 +46,7 @@ def initialize_demo_data():
     )
     
     db.session.add(demo_user)
+    db.session.add(admin_user)
     db.session.add(demo_address)
     
     # Create restaurants
