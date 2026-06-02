@@ -228,26 +228,32 @@ function updateCartItemQuantity(index, quantity) {
 
 // Remove item from cart
 function removeCartItem(index) {
-  fetch('/api/cart', {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      index: index
-    })
-  })
-  .then(handleHttpError)
-  .then(response => response.json())
-  .then(data => {
-    appState.cart = data.cart;
-    showSuccess('Item removed from cart');
-    updateCartUI();
-    updateCartCount();
-  })
-  .catch(error => {
-    console.error('Error removing item from cart:', error);
-  });
+  const cartItem = document.querySelector(`.cart-item[data-index="${index}"]`);
+  if (cartItem) {
+    cartItem.classList.add('removing');
+    setTimeout(() => {
+      fetch('/api/cart', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ index })
+      })
+        .then(handleHttpError)
+        .then(response => response.json())
+        .then(data => {
+          appState.cart = data.cart;
+          showSuccess('Item removed from cart');
+          updateCartUI();
+          updateCartCount();
+        })
+        .catch(error => {
+          console.error('Error removing item from cart:', error);
+          showError('Failed to remove item from cart');
+          cartItem.classList.remove('removing');
+        });
+    }, 300);
+  }
 }
 
 // Clear entire cart

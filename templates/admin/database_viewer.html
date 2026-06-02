@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Database Viewer{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Database Viewer</h1>
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Tables</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#users" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#usersTable">Users</a>
+                    <a href="#restaurants" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#restaurantsTable">Restaurants</a>
+                    <a href="#menu_categories" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#menuCategoriesTable">Menu Categories</a>
+                    <a href="#menu_items" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#menuItemsTable">Menu Items</a>
+                    <a href="#orders" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#ordersTable">Orders</a>
+                    <a href="#addresses" class="list-group-item list-group-item-action" data-bs-toggle="collapse" data-bs-target="#addressesTable">Addresses</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div id="usersTable" class="collapse show">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Users</h5>
+                        <div>
+                            <input type="text" class="form-control form-control-sm" placeholder="Search users..." id="userSearch">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Created At</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>{{ user.id }}</td>
+                                        <td>{{ user.username }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.role.value }}</td>
+                                        <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary edit-btn">Edit</button>
+                                            <button class="btn btn-sm btn-danger">Delete</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="restaurantsTable" class="collapse">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Restaurants</h5>
+                        <div>
+                            <input type="text" class="form-control form-control-sm" placeholder="Search restaurants..." id="restaurantSearch">
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Cuisine Type</th>
+                                        <th>Rating</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for restaurant in restaurants %}
+                                    <tr>
+                                        <td>{{ restaurant.id }}</td>
+                                        <td>{{ restaurant.name }}</td>
+                                        <td>{{ restaurant.cuisine_type }}</td>
+                                        <td>{{ restaurant.rating }}</td>
+                                        <td>{{ 'Active' if restaurant.is_active else 'Inactive' }}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary edit-btn">Edit</button>
+                                            <button class="btn btn-sm btn-danger">Delete</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Similar sections for other tables -->
+        </div>
+    </div>
+</div>
+
+<!-- Add custom CSS for better table display -->
+{% block extra_css %}
+<style>
+    .table-responsive {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    .card-header input {
+        width: 200px;
+    }
+</style>
+{% endblock %}
+
+<!-- Add custom JavaScript for search functionality -->
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add search functionality for each table
+        const addTableSearch = (tableId, searchId) => {
+            const searchInput = document.getElementById(searchId);
+            const table = document.querySelector(`#${tableId} table`);
+            
+            if (searchInput && table) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const rows = table.querySelectorAll('tbody tr');
+                    
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = text.includes(searchTerm) ? '' : 'none';
+                    });
+                });
+            }
+        };
+
+        // Initialize search for each table
+        addTableSearch('usersTable', 'userSearch');
+        addTableSearch('restaurantsTable', 'restaurantSearch');
+
+        // Handle edit button clicks
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const cells = row.querySelectorAll('td:not(:last-child)');
+                const id = cells[0].textContent;
+                const tableName = this.closest('.collapse').id.replace('Table', '');
+                
+                cells.forEach((cell, index) => {
+                    if (index === 0) return; // Skip ID cell
+                    const originalText = cell.textContent;
+                    cell.innerHTML = `<input type="text" class="form-control form-control-sm" value="${originalText}">`;                    
+                });
+                
+                // Replace edit/delete buttons with save/cancel
+                const actionCell = row.querySelector('td:last-child');
+                actionCell.innerHTML = `
+                    <button class="btn btn-sm btn-success save-btn" data-id="${id}" data-table="${tableName}">Save</button>
+                    <button class="btn btn-sm btn-secondary cancel-btn">Cancel</button>
+                `;
+            });
+        });
+
+        // Handle save button clicks using event delegation
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('save-btn')) {
+                const row = e.target.closest('tr');
+                const id = e.target.dataset.id;
+                const tableName = e.target.dataset.table;
+                const inputs = row.querySelectorAll('input');
+                const data = {};
+                
+                inputs.forEach((input, index) => {
+                    const fieldName = row.closest('table').querySelectorAll('th')[index + 1].textContent.toLowerCase();
+                    data[fieldName] = input.value;
+                });
+
+                // Send update request to server
+                fetch(`/api/admin/${tableName}/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.error) {
+                        alert('Error: ' + result.error);
+                        return;
+                    }
+                    // Refresh the page to show updated data
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to update record');
+                });
+            }
+        });
+
+        // Handle cancel button clicks using event delegation
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('cancel-btn')) {
+                location.reload();
+            }
+        });
+
+        // Handle delete button clicks
+        document.querySelectorAll('.btn-danger').forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                const id = row.querySelector('td').textContent;
+                const tableName = this.closest('.collapse').id.replace('Table', '');
+                
+                if (confirm(`Are you sure you want to delete this ${tableName} record?`)) {
+                    // Send delete request to server
+                    fetch(`/api/admin/${tableName}/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.error) {
+                            alert('Error: ' + result.error);
+                            return;
+                        }
+                        // Remove the row from the table
+                        row.remove();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to delete record');
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

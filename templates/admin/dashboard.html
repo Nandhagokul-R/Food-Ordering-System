@@ -24,7 +24,7 @@
                     <i class="fas fa-store fa-3x mb-3 text-primary"></i>
                     <h3 class="card-title">Restaurants</h3>
                     <p class="card-text">Manage restaurant details, categories, and availability.</p>
-                    <a href="#" class="btn btn-secondary">Coming Soon</a>
+                    <a href="{{ url_for('admin_restaurants') }}" class="btn btn-primary">Manage Restaurants</a>
                 </div>
             </div>
         </div>
@@ -35,7 +35,7 @@
                     <i class="fas fa-users fa-3x mb-3 text-primary"></i>
                     <h3 class="card-title">User Management</h3>
                     <p class="card-text">Manage user accounts, roles, and permissions.</p>
-                    <a href="#" class="btn btn-secondary">Coming Soon</a>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-primary">Manage Users</a>
                 </div>
             </div>
         </div>
@@ -60,6 +60,17 @@
                     <h3 class="card-title">Promotions</h3>
                     <p class="card-text">Create and manage promotional offers and discount codes.</p>
                     <a href="#" class="btn btn-secondary">Coming Soon</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-database fa-3x mb-3 text-primary"></i>
+                    <h3 class="card-title">Database Viewer</h3>
+                    <p class="card-text">View and manage database tables and records.</p>
+                    <a href="{{ url_for('database_viewer') }}" class="btn btn-primary">View Database</a>
                 </div>
             </div>
         </div>

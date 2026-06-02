@@ -324,7 +324,10 @@ function updateTotal(tipAmount) {
 }
 
 // Place order
-function placeOrder(orderData) {
+function placeOrder(orderData, retryCount = 0) {
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000; // 1 second delay between retries
+
   // Show loading
   const checkoutButton = document.querySelector('button[type="submit"]');
   if (checkoutButton) {
@@ -332,25 +335,107 @@ function placeOrder(orderData) {
     checkoutButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
   }
   
+  // Get CSRF token from meta tag
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  
   // Send order to server
   fetch('/api/orders', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-CSRFToken': csrfToken || ''
     },
-    body: JSON.stringify(orderData)
+    body: JSON.stringify(orderData),
+    credentials: 'same-origin'
   })
-  .then(handleHttpError)
-  .then(response => response.json())
-  .then(data => {
-    // Show success message
-    showSuccess('Order placed successfully!');
+  .then(async response => {
+    const contentType = response.headers.get('content-type');
     
-    // Redirect to order confirmation page
-    window.location.href = `/orders/${data.order.id}/confirmation`;
+    // Handle non-JSON responses
+    if (!contentType || !contentType.includes('application/json')) {
+      // Try to get error message from response text
+      const textResponse = await response.text();
+      let errorMessage = 'Server returned non-JSON response';
+      
+      // Check if response contains HTML error page
+      if (textResponse.includes('<html')) {
+        errorMessage = 'Server error: Please try again later';
+      } else if (textResponse) {
+        // Use text response as error message if available
+        errorMessage = textResponse;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const responseData = await response.json();
+    
+    if (!response.ok) {
+      const error = new Error(responseData.error || responseData.message || `Server error (${response.status}): ${response.statusText}`);
+      error.status = response.status;
+      throw error;
+    }
+
+    if (!responseData || typeof responseData !== 'object') {
+      throw new Error('Invalid response format from server');
+    }
+
+    return responseData;
+  })
+  .then(data => {
+    if (data.order && data.order.id) {
+      // Show success message
+      showSuccess('Order placed successfully!');
+      
+      // Clear cart from local state
+      appState.cart = [];
+      
+      // Redirect to order success page after a short delay
+      setTimeout(() => {
+        window.location.href = `/orders/${data.order.id}/success`;
+      }, 1500);
+    } else {
+      throw new Error('Invalid order response from server');
+    }
   })
   .catch(error => {
     console.error('Error placing order:', error);
+    
+    // Check if we should retry
+    if (retryCount < MAX_RETRIES && (error.status === 500 || error.status === 503 || error.status === 504)) {
+      showError(`Server error occurred. Retrying... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
+      
+      // Retry after delay
+      setTimeout(() => {
+        placeOrder(orderData, retryCount + 1);
+      }, RETRY_DELAY);
+      return;
+    }
+    
+    // Show appropriate error message
+    let errorMessage;
+    switch (error.status) {
+      case 400:
+        errorMessage = 'Invalid order data. Please check your information and try again.';
+        break;
+      case 401:
+        errorMessage = 'Please log in to place your order.';
+        break;
+      case 403:
+        errorMessage = 'You are not authorized to place this order.';
+        break;
+      case 404:
+        errorMessage = 'The requested service is not available.';
+        break;
+      case 429:
+        errorMessage = 'Too many requests. Please wait a moment and try again.';
+        break;
+      default:
+        errorMessage = error.message || 'Failed to place order. Please try again.';
+    }
+    
+    showError(errorMessage);
     
     // Re-enable checkout button
     if (checkoutButton) {

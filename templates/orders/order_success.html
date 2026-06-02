@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmation{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="mb-4">Thank You for Your Order!</h2>
+                    <p class="lead mb-4">Your order has been successfully placed.</p>
+                    <div class="order-details bg-light p-4 rounded mb-4 text-start">
+                        <h4 class="mb-3">Order Details</h4>
+                        <div class="row mb-2">
+                            <div class="col-sm-6">
+                                <strong>Order Number:</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                #{{ order.id }}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-6">
+                                <strong>Order Date:</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                {{ order.created_at.strftime('%B %d, %Y %I:%M %p') }}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-6">
+                                <strong>Total Amount:</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                ${{ "%.2f"|format(order.total_amount) }}
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-sm-6">
+                                <strong>Payment Method:</strong>
+                            </div>
+                            <div class="col-sm-6">
+                                {{ order.payment_method }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="/orders/{{ order.id }}/bill" class="btn btn-primary">
+                            <i class="fas fa-file-invoice me-2"></i>View Bill
+                        </a>
+                        <a href="/" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>Return to Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

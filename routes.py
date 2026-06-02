@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, session, redirect, url_for, flash
+from flask import render_template, request, jsonify, session, redirect, url_for, flash, abort
 from app import app, db, jwt
 from models import *
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -7,6 +7,11 @@ from datetime import datetime, timedelta
 import json
 import logging
 from functools import wraps
+
+# Error handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('errors/404.html'), 404
 
 # Helper functions
 def login_required(f):
@@ -59,10 +64,12 @@ def logout():
     return redirect(url_for('index'))
 
 @app.route('/restaurants')
+@login_required
 def restaurants():
     return render_template('restaurants/list.html', user=get_current_user())
 
 @app.route('/restaurants/<int:restaurant_id>')
+@login_required
 def restaurant_detail(restaurant_id):
     restaurant = Restaurant.query.get_or_404(restaurant_id)
     return render_template('restaurants/detail.html', restaurant=restaurant, user=get_current_user())
@@ -90,9 +97,17 @@ def order_confirmation(order_id):
     order = Order.query.get_or_404(order_id)
     if order.user_id != session['user_id']:
         flash('You do not have permission to view this order', 'error')
-        return redirect(url_for('index'))
-    
+        return redirect(url_for('order_history'))
     return render_template('orders/confirmation.html', order=order, user=get_current_user())
+
+@app.route('/orders/<int:order_id>/bill')
+@login_required
+def order_bill(order_id):
+    order = Order.query.get_or_404(order_id)
+    if order.user_id != session['user_id']:
+        flash('You do not have permission to view this bill', 'error')
+        return redirect(url_for('order_history'))
+    return render_template('orders/bill.html', order=order, user=get_current_user())
 
 @app.route('/orders')
 @login_required
@@ -114,6 +129,85 @@ def profile():
 def admin_dashboard():
     return render_template('admin/dashboard.html', user=get_current_user())
 
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    users = User.query.all()
+    return render_template('admin/users.html', user=get_current_user(), users=users)
+
+@app.route('/api/admin/users/<int:user_id>', methods=['GET'])
+@admin_required
+def get_user(user_id):
+    user = User.query.get_or_404(user_id)
+    return jsonify(user.to_dict())
+
+@app.route('/api/admin/users/<int:user_id>', methods=['PUT', 'DELETE'])
+@admin_required
+def update_user(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    if request.method == 'DELETE':
+        try:
+            # Delete related records first
+            Address.query.filter_by(user_id=user.id).delete()
+            Order.query.filter_by(user_id=user.id).delete()
+            
+            # Delete the user
+            db.session.delete(user)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': 'User and all related records deleted successfully'
+            }), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({
+                'success': False,
+                'error': f'Failed to delete user: {str(e)}'
+            }), 500
+    
+    # Handle PUT request
+    data = request.json
+    
+    # Update user fields
+    user.username = data.get('username', user.username)
+    user.email = data.get('email', user.email)
+    user.first_name = data.get('first_name', user.first_name)
+    user.last_name = data.get('last_name', user.last_name)
+    user.phone_number = data.get('phone_number', user.phone_number)
+    
+    # Update role if provided and valid
+    new_role = data.get('role')
+    if new_role and new_role in [role.value for role in UserRole]:
+        user.role = UserRole(new_role)
+    
+    try:
+        db.session.commit()
+        return jsonify({'message': 'User updated successfully', 'user': user.to_dict()})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update user'}), 500
+
+@app.route('/admin/database')
+@admin_required
+def database_viewer():
+    users = User.query.all()
+    restaurants = Restaurant.query.all()
+    menu_categories = MenuCategory.query.all()
+    menu_items = MenuItem.query.all()
+    orders = Order.query.all()
+    addresses = Address.query.all()
+    
+    return render_template('admin/database_viewer.html',
+                          user=get_current_user(),
+                          users=users,
+                          restaurants=restaurants,
+                          menu_categories=menu_categories,
+                          menu_items=menu_items,
+                          orders=orders,
+                          addresses=addresses)
+
 @app.route('/admin/menu-items')
 @admin_required
 def admin_menu_items():
@@ -125,6 +219,103 @@ def admin_menu_items():
                           restaurants=restaurants,
                           menu_items=menu_items,
                           menu_categories=menu_categories)
+
+@app.route('/admin/restaurants')
+@admin_required
+def admin_restaurants():
+    restaurants = Restaurant.query.all()
+    return render_template('admin/restaurants.html', 
+                          user=get_current_user(),
+                          restaurants=restaurants)
+
+@app.route('/api/admin/restaurants', methods=['POST'])
+@admin_required
+def api_admin_add_restaurant():
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = [
+            'name', 'cuisine_type', 'delivery_time_min', 'delivery_time_max',
+            'price_range', 'description', 'delivery_fee', 'address_line1',
+            'city', 'state', 'postal_code', 'phone_number', 'email'
+        ]
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}', 'success': False}), 400
+        
+        # Validate numeric fields
+        try:
+            delivery_time_min = int(data['delivery_time_min'])
+            delivery_time_max = int(data['delivery_time_max'])
+            price_range = int(data['price_range'])
+            delivery_fee = float(data['delivery_fee'])
+            
+            if delivery_time_min < 0 or delivery_time_max < 0:
+                return jsonify({'error': 'Delivery times cannot be negative', 'success': False}), 400
+            if delivery_time_min > delivery_time_max:
+                return jsonify({'error': 'Minimum delivery time cannot be greater than maximum', 'success': False}), 400
+            if price_range < 1 or price_range > 4:
+                return jsonify({'error': 'Price range must be between 1 and 4', 'success': False}), 400
+            if delivery_fee < 0:
+                return jsonify({'error': 'Delivery fee cannot be negative', 'success': False}), 400
+        except ValueError:
+            return jsonify({'error': 'Invalid numeric values provided', 'success': False}), 400
+        
+        # Create new restaurant
+        restaurant = Restaurant(
+            name=data['name'],
+            description=data['description'],
+            address_line1=data['address_line1'],
+            address_line2=data.get('address_line2', ''),
+            city=data['city'],
+            state=data['state'],
+            postal_code=data['postal_code'],
+            phone_number=data['phone_number'],
+            email=data['email'],
+            cuisine_type=data['cuisine_type'],
+            price_range=price_range,
+            delivery_fee=delivery_fee,
+            delivery_time_min=delivery_time_min,
+            delivery_time_max=delivery_time_max,
+            image_url=data.get('image_url', ''),
+            is_active=data.get('is_active', True)
+        )
+        
+        db.session.add(restaurant)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Restaurant added successfully',
+            'restaurant': restaurant.to_dict()
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': f'Failed to add restaurant: {str(e)}'
+        }), 500
+
+@app.route('/api/admin/restaurants/<int:restaurant_id>', methods=['DELETE'])
+@admin_required
+def api_admin_delete_restaurant(restaurant_id):
+    try:
+        restaurant = Restaurant.query.get_or_404(restaurant_id)
+        db.session.delete(restaurant)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Restaurant and all related items deleted successfully'
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': f'Failed to delete restaurant: {str(e)}'
+        }), 500
 
 # API Routes (JSON)
 @app.route('/api/auth/register', methods=['POST'])
@@ -222,25 +413,26 @@ def api_restaurants():
                 )
             )
     
-    # Apply sorting
+    # Apply sorting with Karam Restaurant prioritized
     sort_by = request.args.get('sort_by', 'rating')
     sort_order = request.args.get('sort_order', 'desc')
     
+    # Always prioritize Karam Restaurant
     if sort_by == 'name':
         if sort_order == 'asc':
-            query = query.order_by(Restaurant.name.asc())
+            query = query.order_by(Restaurant.name != 'Karam Restaurant', Restaurant.name.asc())
         else:
-            query = query.order_by(Restaurant.name.desc())
+            query = query.order_by(Restaurant.name != 'Karam Restaurant', Restaurant.name.desc())
     elif sort_by == 'price':
         if sort_order == 'asc':
-            query = query.order_by(Restaurant.price_range.asc())
+            query = query.order_by(Restaurant.name != 'Karam Restaurant', Restaurant.price_range.asc())
         else:
-            query = query.order_by(Restaurant.price_range.desc())
+            query = query.order_by(Restaurant.name != 'Karam Restaurant', Restaurant.price_range.desc())
     else:  # default: rating
         if sort_order == 'asc':
-            query = query.order_by(Restaurant.rating.asc())
+            query = query.order_by(Restaurant.name != 'Karam Restaurant', Restaurant.rating.asc())
         else:
-            query = query.order_by(Restaurant.rating.desc())
+            query = query.order_by(Restaurant.name != 'Karam Restaurant', Restaurant.rating.desc())
     
     # Get results
     restaurants = query.all()
@@ -698,35 +890,60 @@ def api_admin_menu_items():
         }), 200
     
     elif request.method == 'POST':
-        data = request.json
-        
-        # Validate required fields
-        required_fields = ['category_id', 'name', 'price']
-        for field in required_fields:
-            if field not in data:
-                return jsonify({'error': f'Missing required field: {field}'}), 400
-        
-        # Create new menu item
-        menu_item = MenuItem(
-            category_id=data['category_id'],
-            name=data['name'],
-            description=data.get('description', ''),
-            price=data['price'],
-            image_url=data.get('image_url', ''),
-            is_vegetarian=data.get('is_vegetarian', False),
-            is_vegan=data.get('is_vegan', False),
-            is_gluten_free=data.get('is_gluten_free', False),
-            spice_level=data.get('spice_level', 0),
-            is_available=data.get('is_available', True)
-        )
-        
-        db.session.add(menu_item)
-        db.session.commit()
-        
-        return jsonify({
-            'message': 'Menu item added successfully',
-            'menu_item': menu_item.to_dict()
-        }), 201
+        try:
+            data = request.json
+            if not data:
+                return jsonify({'error': 'No data provided'}), 400
+            
+            # Validate required fields
+            required_fields = ['category_id', 'name', 'price']
+            missing_fields = [field for field in required_fields if not data.get(field)]
+            if missing_fields:
+                return jsonify({'error': f'Missing required fields: {", ".join(missing_fields)}'}), 400
+            
+            # Validate data types and values
+            try:
+                category_id = int(data['category_id'])
+                if not MenuCategory.query.get(category_id):
+                    return jsonify({'error': 'Invalid category ID'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Category ID must be a valid number'}), 400
+                
+            try:
+                price = float(data['price'])
+                if price <= 0:
+                    return jsonify({'error': 'Price must be greater than 0'}), 400
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Price must be a valid number'}), 400
+            
+            if not isinstance(data['name'], str) or not data['name'].strip():
+                return jsonify({'error': 'Name must be a non-empty string'}), 400
+            
+            # Create new menu item
+            menu_item = MenuItem(
+                category_id=category_id,
+                name=data['name'].strip(),
+                description=data.get('description', '').strip(),
+                price=price,
+                image_url=data.get('image_url', '').strip(),
+                is_vegetarian=bool(data.get('is_vegetarian', False)),
+                is_vegan=bool(data.get('is_vegan', False)),
+                is_gluten_free=bool(data.get('is_gluten_free', False)),
+                spice_level=min(max(int(data.get('spice_level', 0)), 0), 4),
+                is_available=bool(data.get('is_available', True))
+            )
+            
+            db.session.add(menu_item)
+            db.session.commit()
+            
+            return jsonify({
+                'message': 'Menu item added successfully',
+                'menu_item': menu_item.to_dict()
+            }), 201
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Failed to save menu item. Please try again.'}), 500
 
 @app.route('/api/admin/menu-items/<int:menu_item_id>', methods=['GET', 'PUT', 'DELETE'])
 @admin_required

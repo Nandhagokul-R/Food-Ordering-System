@@ -1,9 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Food Delivery - Checkout{% endblock %}
+{% block title %}Food ordering system - Checkout{% endblock %}
 
 {% block content %}
 <div class="container">
+    <!-- Success Alert -->
+    <div id="success-alert" class="alert alert-success alert-dismissible fade show d-none" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>Success!</strong> Your order has been placed successfully.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
     <h1 class="mb-4">Checkout</h1>
     
     <!-- Hidden restaurant ID -->

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Food Delivery - Login{% endblock %}
+{% block title %}Food ordering system - Login{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -36,4 +36,10 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+</script>
 {% endblock %}

@@ -1,12 +1,66 @@
 {% extends "base.html" %}
 
-{% block title %}Food Delivery - Order Confirmation{% endblock %}
+{% block title %}Food ordering system - Order Confirmation{% endblock %}
 
 {% block content %}
-<div class="container" id="order-detail" data-order-id="{{ order.id }}">
-    <div class="text-center p-5">
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Loading...</span>
+<div class="container py-4" id="order-detail" data-order-id="{{ order.id }}">
+    <!-- Success Alert Banner -->
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>Success!</strong> Your order has been placed successfully.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Order #{{ order.id }}</h5>
+            <span class="badge bg-{{ order.status|lower }}">{{ order.status }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Order Details</h6>
+                    <p class="mb-1"><strong>Date:</strong> {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    <p class="mb-1"><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+                    <p class="mb-1"><strong>Total Amount:</strong> ${{ "%.2f"|format(order.total_amount) }}</p>
+                    {% if order.tip %}
+                        <p class="mb-1"><strong>Tip:</strong> ${{ "%.2f"|format(order.tip) }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <h6>Delivery Address</h6>
+                    <p class="mb-1">{{ order.delivery_address.address_line1 }}</p>
+                    {% if order.delivery_address.address_line2 %}
+                        <p class="mb-1">{{ order.delivery_address.address_line2 }}</p>
+                    {% endif %}
+                    <p class="mb-1">{{ order.delivery_address.city }}, {{ order.delivery_address.state }} {{ order.delivery_address.postal_code }}</p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h6>Order Items</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                                <tr>
+                                    <td>{{ item.menu_item.name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>${{ "%.2f"|format(item.price) }}</td>
+                                    <td>${{ "%.2f"|format(item.quantity * item.price) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -23,6 +77,9 @@
                 <p class="mb-0">Thank you for your order. Your food is on its way!</p>
             </div>
             <div class="modal-footer justify-content-center border-0">
+                <a href="/orders/{{ order.id }}/bill" class="btn btn-primary me-2">
+                    <i class="fas fa-file-invoice me-2"></i>View Bill
+                </a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -34,13 +91,16 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Show success message modal when page loads
-        const orderSuccessModal = new bootstrap.Modal(document.getElementById('order-success-modal'));
-        orderSuccessModal.show();
-        
-        // Close modal after 3 seconds
-        setTimeout(() => {
-            orderSuccessModal.hide();
-        }, 3000);
+        const orderSuccessModal = document.getElementById('order-success-modal');
+        if (orderSuccessModal) {
+            const modal = new bootstrap.Modal(orderSuccessModal);
+            modal.show();
+            
+            // Close modal after 3 seconds
+            setTimeout(() => {
+                modal.hide();
+            }, 3000);
+        }
     });
 </script>
 {% endblock %}

@@ -204,7 +204,7 @@ function setupFilters() {
 
 // Format price range (1-4) as $ symbols
 function formatPriceRange(priceRange) {
-  return '$'.repeat(priceRange);
+  return '₹'.repeat(priceRange);
 }
 
 // Format rating as stars
@@ -235,7 +235,7 @@ function formatRating(rating) {
 
 // Format currency
 function formatCurrency(amount) {
-  return '$' + amount.toFixed(2);
+  return '₹' + amount.toFixed(2);
 }
 
 // Show error message

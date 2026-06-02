@@ -1,8 +1,8 @@
-# Food Delivery Application
+# Food ordering system
 
 ## Overview
 
-This is a comprehensive food delivery web application built with Flask and PostgreSQL. The application enables restaurant menu management, order processing, and includes an administrative control panel.
+This is a comprehensive food ordering system web application built with Flask and PostgreSQL. The application enables restaurant menu management, order processing, and includes an administrative control panel.
 
 ## Features
 

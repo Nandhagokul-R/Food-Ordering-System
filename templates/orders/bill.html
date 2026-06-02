@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Food ordering system - Order Bill{% endblock %}
+
+{% block content %}
+<div class="container py-4" id="bill-detail">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <!-- Bill Header -->
+            <div class="text-center mb-4">
+                <h2 class="mb-1">Order Bill</h2>
+                <p class="text-muted mb-0">Order #{{ order.id }}</p>
+                <p class="text-muted mb-0">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            </div>
+
+            <!-- Restaurant Info -->
+            <div class="mb-4">
+                <h5>Restaurant Details</h5>
+                <p class="mb-1">{{ order.restaurant.name }}</p>
+                <p class="mb-1">{{ order.restaurant.address_line1 }}</p>
+                <p class="mb-0">{{ order.restaurant.city }}, {{ order.restaurant.state }} {{ order.restaurant.postal_code }}</p>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="mb-4">
+                <h5>Delivery Details</h5>
+                <p class="mb-1">{{ order.user.name }}</p>
+                <p class="mb-1">{{ order.delivery_address.address_line1 }}</p>
+                {% if order.delivery_address.address_line2 %}
+                    <p class="mb-1">{{ order.delivery_address.address_line2 }}</p>
+                {% endif %}
+                <p class="mb-0">{{ order.delivery_address.city }}, {{ order.delivery_address.state }} {{ order.delivery_address.postal_code }}</p>
+            </div>
+
+            <!-- Order Items -->
+            <div class="mb-4">
+                <h5>Order Items</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                                <tr>
+                                    <td>
+                                        {{ item.menu_item.name }}
+                                        {% if item.customizations %}
+                                            <small class="d-block text-muted">
+                                                {% for custom in item.customizations %}
+                                                    {{ custom.option.name }}{% if not loop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-end">${{ "%.2f"|format(item.price) }}</td>
+                                    <td class="text-end">${{ "%.2f"|format(item.quantity * item.price) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bill Summary -->
+            <div class="border-top pt-3">
+                <div class="row justify-content-end">
+                    <div class="col-md-5">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <strong>${{ "%.2f"|format(order.subtotal) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax:</span>
+                            <strong>${{ "%.2f"|format(order.tax) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Delivery Fee:</span>
+                            <strong>${{ "%.2f"|format(order.delivery_fee) }}</strong>
+                        </div>
+                        {% if order.tip %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tip:</span>
+                            <strong>${{ "%.2f"|format(order.tip) }}</strong>
+                        </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between border-top pt-2 mt-2">
+                            <span class="h5 mb-0">Total:</span>
+                            <span class="h5 mb-0">${{ "%.2f"|format(order.total) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="border-top mt-4 pt-3">
+                <p class="mb-1"><strong>Payment Method:</strong> {{ order.payment_method|replace('_', ' ')|title }}</p>
+                {% if order.special_instructions %}
+                    <p class="mb-0"><strong>Special Instructions:</strong> {{ order.special_instructions }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                <button onclick="window.print()" class="btn btn-primary me-2">
+                    <i class="fas fa-print me-2"></i>Print Bill
+                </button>
+                <button onclick="downloadAsPDF()" class="btn btn-success">
+                    <i class="fas fa-file-pdf me-2"></i>Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style media="print">
+    @page {
+        size: auto;
+        margin: 20mm;
+    }
+    .btn, .navbar, footer {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+    .table {
+        border-collapse: collapse !important;
+    }
+    .table td, .table th {
+        background-color: #fff !important;
+    }
+</style>
+
+<!-- PDF Generation Script -->
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function downloadAsPDF() {
+    const element = document.getElementById('bill-detail');
+    const opt = {
+        margin: 1,
+        filename: 'order-bill-{{ order.id }}.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+</script>
+{% endblock %}
+{% endblock %}

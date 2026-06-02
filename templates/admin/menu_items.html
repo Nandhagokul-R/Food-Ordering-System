@@ -154,7 +154,7 @@
                         <div class="col-md-6">
                             <label for="menu-item-price" class="form-label">Price <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text">$</span>
+                                <span class="input-group-text">₹</span>
                                 <input type="number" class="form-control" id="menu-item-price" min="0" step="0.01" required>
                             </div>
                         </div>
@@ -393,7 +393,7 @@
                     <tr data-id="${item.id}">
                         <td>${item.name}</td>
                         <td>${categoryName}</td>
-                        <td>$${item.price.toFixed(2)}</td>
+                        <td>₹${item.price.toFixed(2)}</td>
                         <td>
                             <span class="badge ${item.is_available ? 'bg-success' : 'bg-danger'}">
                                 ${item.is_available ? 'Available' : 'Unavailable'}
@@ -483,7 +483,7 @@
                             <div class="col-md-6">
                                 <label for="menu-item-price" class="form-label">Price <span class="text-danger">*</span></label>
                                 <div class="input-group">
-                                    <span class="input-group-text">$</span>
+                                    <span class="input-group-text">₹</span>
                                     <input type="number" class="form-control" id="menu-item-price" min="0" step="0.01" required>
                                 </div>
                             </div>
@@ -604,8 +604,14 @@
                 },
                 body: JSON.stringify(data)
             })
-                .then(handleHttpError)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.error || 'Failed to save menu item');
+                        });
+                    }
+                    return response.json();
+                })
                 .then(result => {
                     showSuccess(result.message);
                     menuItemModal.hide();
@@ -613,7 +619,7 @@
                 })
                 .catch(error => {
                     console.error('Error saving menu item:', error);
-                    showError('Error saving menu item. Please try again.');
+                    showError(error.message || 'Error saving menu item. Please try again.');
                 })
                 .finally(() => {
                     saveMenuItemBtn.innerHTML = 'Save';

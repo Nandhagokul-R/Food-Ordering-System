@@ -100,7 +100,7 @@ class Restaurant(db.Model):
     
     # Relationships
     menu_categories = db.relationship('MenuCategory', back_populates='restaurant', cascade='all, delete-orphan')
-    orders = db.relationship('Order', back_populates='restaurant')
+    orders = db.relationship('Order', back_populates='restaurant', cascade='all, delete-orphan')
     
     def to_dict(self):
         return {

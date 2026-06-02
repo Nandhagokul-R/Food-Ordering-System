@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Food ordering system - Order History{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">Order History</h2>
+    
+    {% if orders %}
+        <div class="row">
+            {% for order in orders %}
+                <div class="col-12 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Order #{{ order.id }}</h5>
+                            <span class="badge bg-{{ order.status|lower }}">{{ order.status }}</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Order Details</h6>
+                                    <p class="mb-1"><strong>Date:</strong> {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                                    <p class="mb-1"><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+                                    <p class="mb-1"><strong>Total Amount:</strong> ${{ "%.2f"|format(order.total_amount) }}</p>
+                                    {% if order.tip %}
+                                        <p class="mb-1"><strong>Tip:</strong> ${{ "%.2f"|format(order.tip) }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Delivery Address</h6>
+                                    <p class="mb-1">{{ order.delivery_address.address_line1 }}</p>
+                                    {% if order.delivery_address.address_line2 %}
+                                        <p class="mb-1">{{ order.delivery_address.address_line2 }}</p>
+                                    {% endif %}
+                                    <p class="mb-1">{{ order.delivery_address.city }}, {{ order.delivery_address.state }} {{ order.delivery_address.postal_code }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h6>Order Items</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Item</th>
+                                                <th>Quantity</th>
+                                                <th>Price</th>
+                                                <th>Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in order.items %}
+                                                <tr>
+                                                    <td>{{ item.menu_item.name }}</td>
+                                                    <td>{{ item.quantity }}</td>
+                                                    <td>${{ "%.2f"|format(item.price) }}</td>
+                                                    <td>${{ "%.2f"|format(item.quantity * item.price) }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p class="mb-0">You haven't placed any orders yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

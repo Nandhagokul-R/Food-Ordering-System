@@ -134,6 +134,57 @@ def initialize_demo_data():
             "delivery_time_min": 25,
             "delivery_time_max": 40,
             "image_url": "https://images.unsplash.com/photo-1562565652-a0d8f0c59eb4"
+        },
+        {
+            "name": "Indian Curry House",
+            "description": "Traditional Indian curries and tandoori specialties.",
+            "address_line1": "432 Valencia St",
+            "city": "San Francisco",
+            "state": "CA",
+            "postal_code": "94103",
+            "phone_number": "555-234-5678",
+            "email": "info@indiancurryhouse.com",
+            "cuisine_type": "Indian",
+            "price_range": 2,
+            "rating": 4.6,
+            "delivery_fee": 3.99,
+            "delivery_time_min": 30,
+            "delivery_time_max": 45,
+            "image_url": "https://images.unsplash.com/photo-1585937421612-70a008356fbe"
+        },
+        {
+            "name": "Mediterranean Delight",
+            "description": "Fresh Mediterranean cuisine featuring kebabs, falafel, and hummus.",
+            "address_line1": "765 Polk St",
+            "city": "San Francisco",
+            "state": "CA",
+            "postal_code": "94109",
+            "phone_number": "555-876-5432",
+            "email": "info@meddelight.com",
+            "cuisine_type": "Mediterranean",
+            "price_range": 2,
+            "rating": 4.5,
+            "delivery_fee": 3.49,
+            "delivery_time_min": 25,
+            "delivery_time_max": 40,
+            "image_url": "https://images.unsplash.com/photo-1544378730-8b5104b41021"
+        },
+        {
+            "name": "Pho Express",
+            "description": "Authentic Vietnamese pho and banh mi sandwiches.",
+            "address_line1": "543 Larkin St",
+            "city": "San Francisco",
+            "state": "CA",
+            "postal_code": "94102",
+            "phone_number": "555-345-6789",
+            "email": "info@phoexpress.com",
+            "cuisine_type": "Vietnamese",
+            "price_range": 1,
+            "rating": 4.3,
+            "delivery_fee": 2.99,
+            "delivery_time_min": 20,
+            "delivery_time_max": 35,
+            "image_url": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43"
         }
     ]
     
@@ -144,103 +195,344 @@ def initialize_demo_data():
         restaurant_objects.append(restaurant)
         db.session.add(restaurant)
     
-    # Create menu categories and items for Burger Palace
-    burger_palace = restaurant_objects[0]
+    # Create menu categories and items for each restaurant
+    for idx, restaurant in enumerate(restaurant_objects):
+        categories = []
+        
+        if idx == 0:  # Karam Restaurant
+            categories = [
+                {
+                    "name": "Burgers",
+                    "description": "Our signature gourmet burgers",
+                    "order": 1
+                },
+                {
+                    "name": "Sides",
+                    "description": "Perfect companions to your burger",
+                    "order": 2
+                },
+                {
+                    "name": "Drinks",
+                    "description": "Refreshing beverages",
+                    "order": 3
+                }
+            ]
+        elif idx == 1:  # Pizza Haven
+            categories = [
+                {
+                    "name": "Pizzas",
+                    "description": "Wood-fired artisanal pizzas",
+                    "order": 1
+                },
+                {
+                    "name": "Pasta",
+                    "description": "Fresh homemade pasta dishes",
+                    "order": 2
+                },
+                {
+                    "name": "Salads",
+                    "description": "Fresh Italian salads",
+                    "order": 3
+                }
+            ]
+        elif idx == 2:  # Sushi Kingdom
+            categories = [
+                {
+                    "name": "Sushi Rolls",
+                    "description": "Fresh and creative sushi rolls",
+                    "order": 1
+                },
+                {
+                    "name": "Sashimi",
+                    "description": "Premium quality raw fish",
+                    "order": 2
+                },
+                {
+                    "name": "Hot Dishes",
+                    "description": "Traditional Japanese hot dishes",
+                    "order": 3
+                }
+            ]
+        elif idx == 3:  # Taco Fiesta
+            categories = [
+                {
+                    "name": "Tacos",
+                    "description": "Authentic Mexican tacos",
+                    "order": 1
+                },
+                {
+                    "name": "Burritos",
+                    "description": "Fresh and filling burritos",
+                    "order": 2
+                },
+                {
+                    "name": "Sides",
+                    "description": "Mexican sides and appetizers",
+                    "order": 3
+                }
+            ]
+        elif idx == 4:  # Thai Spice
+            categories = [
+                {
+                    "name": "Curries",
+                    "description": "Authentic Thai curries",
+                    "order": 1
+                },
+                {
+                    "name": "Noodles",
+                    "description": "Traditional Thai noodle dishes",
+                    "order": 2
+                },
+                {
+                    "name": "Stir Fry",
+                    "description": "Wok-fried specialties",
+                    "order": 3
+                }
+            ]
+        elif idx == 5:  # Indian Curry House
+            categories = [
+                {
+                    "name": "Curries",
+                    "description": "Traditional Indian curries",
+                    "order": 1
+                },
+                {
+                    "name": "Tandoor",
+                    "description": "Tandoor-cooked specialties",
+                    "order": 2
+                },
+                {
+                    "name": "Breads",
+                    "description": "Fresh Indian breads",
+                    "order": 3
+                }
+            ]
+        elif idx == 6:  # Mediterranean Delight
+            categories = [
+                {
+                    "name": "Kebabs",
+                    "description": "Grilled meat and vegetable kebabs",
+                    "order": 1
+                },
+                {
+                    "name": "Mezze",
+                    "description": "Mediterranean appetizers",
+                    "order": 2
+                },
+                {
+                    "name": "Wraps",
+                    "description": "Fresh pita wraps",
+                    "order": 3
+                }
+            ]
+        elif idx == 7:  # Pho Express
+            categories = [
+                {
+                    "name": "Pho",
+                    "description": "Traditional Vietnamese noodle soup",
+                    "order": 1
+                },
+                {
+                    "name": "Banh Mi",
+                    "description": "Vietnamese sandwiches",
+                    "order": 2
+                },
+                {
+                    "name": "Rice Dishes",
+                    "description": "Vietnamese rice specialties",
+                    "order": 3
+                }
+            ]
+        
+        category_objects = []
+        for category_data in categories:
+            category = MenuCategory(restaurant=restaurant, **category_data)
+            category_objects.append(category)
+            db.session.add(category)
     
-    burger_categories = [
-        {
-            "name": "Burgers",
-            "description": "Our signature gourmet burgers",
-            "order": 1
-        },
-        {
-            "name": "Sides",
-            "description": "Perfect companions to your burger",
-            "order": 2
-        },
-        {
-            "name": "Drinks",
-            "description": "Refreshing beverages",
-            "order": 3
-        }
-    ]
-    
-    burger_category_objects = []
-    
-    for category_data in burger_categories:
-        category = MenuCategory(restaurant=burger_palace, **category_data)
-        burger_category_objects.append(category)
-        db.session.add(category)
-    
-    # Create menu items for Burger Palace
-    burger_menu_items = [
-        {
-            "category": burger_category_objects[0],  # Burgers
-            "name": "Classic Cheeseburger",
-            "description": "100% Angus beef patty with cheddar cheese, lettuce, tomato, and our special sauce.",
-            "price": 9.99,
-            "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-            "is_vegetarian": False,
-            "spice_level": 0,
-        },
-        {
-            "category": burger_category_objects[0],  # Burgers
-            "name": "Bacon Deluxe",
-            "description": "100% Angus beef patty with crispy bacon, cheddar cheese, caramelized onions, and BBQ sauce.",
-            "price": 12.99,
-            "image_url": "https://images.unsplash.com/photo-1566217688581-b2191944c2f9",
-            "is_vegetarian": False,
-            "spice_level": 1,
-        },
-        {
-            "category": burger_category_objects[0],  # Burgers
-            "name": "Veggie Burger",
-            "description": "House-made plant-based patty with avocado, lettuce, tomato, and vegan aioli.",
-            "price": 10.99,
-            "image_url": "https://images.unsplash.com/photo-1520072959219-c595dc870360",
-            "is_vegetarian": True,
-            "is_vegan": True,
-            "spice_level": 0,
-        },
-        {
-            "category": burger_category_objects[1],  # Sides
-            "name": "French Fries",
-            "description": "Crispy golden fries seasoned with sea salt.",
-            "price": 3.99,
-            "image_url": "https://images.unsplash.com/photo-1576107232684-1279f390859f",
-            "is_vegetarian": True,
-            "is_vegan": True,
-            "spice_level": 0,
-        },
-        {
-            "category": burger_category_objects[1],  # Sides
-            "name": "Onion Rings",
-            "description": "Thick-cut onion rings in a crispy beer batter.",
-            "price": 4.99,
-            "image_url": "https://images.unsplash.com/photo-1576777647209-e8733d7b851d",
-            "is_vegetarian": True,
-            "spice_level": 0,
-        },
-        {
-            "category": burger_category_objects[2],  # Drinks
-            "name": "Soda",
-            "description": "Your choice of Coca-Cola, Diet Coke, Sprite, or Dr. Pepper.",
-            "price": 1.99,
-            "image_url": "https://images.unsplash.com/photo-1596803244698-85a0dc511a1f",
-            "is_vegetarian": True,
-            "is_vegan": True,
-            "spice_level": 0,
-        },
-        {
-            "category": burger_category_objects[2],  # Drinks
-            "name": "Milkshake",
-            "description": "Creamy hand-spun milkshake. Available in vanilla, chocolate, or strawberry.",
-            "price": 5.99,
-            "image_url": "https://images.unsplash.com/photo-1628557044797-f21a177c37ec",
-            "is_vegetarian": True,
-            "spice_level": 0,
-        }
-    ]
+    # Create menu items for each restaurant
+    for idx, restaurant in enumerate(restaurant_objects):
+        if idx == 0:  # Burger Palace
+            menu_items = [
+                {
+                    "category": category_objects[0],  # Burgers
+                    "name": "Classic Cheeseburger",
+                    "description": "100% Angus beef patty with cheddar cheese, lettuce, tomato, and our special sauce.",
+                    "price": 9.99,
+                    "image_url": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
+                    "is_vegetarian": False,
+                    "spice_level": 0
+                },
+                {
+                    "category": category_objects[0],  # Burgers
+                    "name": "Bacon Deluxe",
+                    "description": "100% Angus beef patty with crispy bacon, cheddar cheese, caramelized onions, and BBQ sauce.",
+                    "price": 12.99,
+                    "image_url": "https://images.unsplash.com/photo-1566217688581-b2191944c2f9",
+                    "is_vegetarian": False,
+                    "spice_level": 1
+                },
+                {
+                    "category": category_objects[0],  # Burgers
+                    "name": "Veggie Burger",
+                    "description": "House-made plant-based patty with avocado, lettuce, tomato, and vegan aioli.",
+                    "price": 10.99,
+                    "image_url": "https://images.unsplash.com/photo-1520072959219-c595dc870360",
+                    "is_vegetarian": True,
+                    "spice_level": 0
+                }
+            ]
+        elif idx == 1:  # Pizza Haven
+            menu_items = [
+                {
+                    "category": category_objects[0],  # Pizzas
+                    "name": "Margherita Pizza",
+                    "description": "Fresh mozzarella, tomatoes, basil, and extra virgin olive oil.",
+                    "price": 14.99,
+                    "image_url": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002",
+                    "is_vegetarian": True,
+                    "spice_level": 0
+                },
+                {
+                    "category": category_objects[1],  # Pasta
+                    "name": "Fettuccine Alfredo",
+                    "description": "Fresh fettuccine in creamy parmesan sauce.",
+                    "price": 13.99,
+                    "image_url": "https://images.unsplash.com/photo-1645112411341-6c4fd023714a",
+                    "is_vegetarian": True,
+                    "spice_level": 0
+                }
+            ]
+        elif idx == 2:  # Sushi Kingdom
+            menu_items = [
+                {
+                    "category": category_objects[0],  # Sushi Rolls
+                    "name": "Dragon Roll",
+                    "description": "Eel and cucumber roll topped with avocado and eel sauce.",
+                    "price": 15.99,
+                    "image_url": "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351",
+                    "is_vegetarian": False,
+                    "spice_level": 0
+                },
+                {
+                    "category": category_objects[1],  # Sashimi
+                    "name": "Salmon Sashimi",
+                    "description": "Fresh premium salmon sashimi.",
+                    "price": 16.99,
+                    "image_url": "https://images.unsplash.com/photo-1579871494447-9811cf80d66c",
+                    "is_vegetarian": False,
+                    "spice_level": 0
+                }
+            ]
+        elif idx == 3:  # Taco Fiesta
+            menu_items = [
+                {
+                    "category": category_objects[0],  # Tacos
+                    "name": "Carne Asada Tacos",
+                    "description": "Grilled steak tacos with onions, cilantro, and lime.",
+                    "price": 8.99,
+                    "image_url": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47",
+                    "is_vegetarian": False,
+                    "spice_level": 2
+                },
+                {
+                    "category": category_objects[1],  # Burritos
+                    "name": "Veggie Burrito",
+                    "description": "Rice, beans, grilled vegetables, guacamole, and pico de gallo.",
+                    "price": 9.99,
+                    "image_url": "https://images.unsplash.com/photo-1626700051175-6818013e1d4f",
+                    "is_vegetarian": True,
+                    "spice_level": 1
+                }
+            ]
+        elif idx == 4:  # Thai Spice
+            menu_items = [
+                {
+                    "category": category_objects[0],  # Curries
+                    "name": "Green Curry",
+                    "description": "Thai green curry with bamboo shoots, bell peppers, and basil.",
+                    "price": 12.99,
+                    "image_url": "https://images.unsplash.com/photo-1562565652-a0d8f0c59eb4",
+                    "is_vegetarian": False,
+                    "spice_level": 3
+                },
+                {
+                    "category": category_objects[1],  # Noodles
+                    "name": "Pad Thai",
+                    "description": "Stir-fried rice noodles with tofu, shrimp, peanuts, and tamarind sauce.",
+                    "price": 11.99,
+                    "image_url": "https://images.unsplash.com/photo-1559314809-0d155014e29e",
+                    "is_vegetarian": False,
+                    "spice_level": 2
+                }
+            ]
+        elif idx == 5:  # Indian Curry House
+            menu_items = [
+                {
+                    "category": category_objects[0],  # Curries
+                    "name": "Butter Chicken",
+                    "description": "Tender chicken in rich tomato-cream curry sauce.",
+                    "price": 14.99,
+                    "image_url": "https://images.unsplash.com/photo-1585937421612-70a008356fbe",
+                    "is_vegetarian": False,
+                    "spice_level": 2
+                },
+                {
+                    "category": category_objects[1],  # Tandoor
+                    "name": "Paneer Tikka",
+                    "description": "Marinated and grilled cottage cheese with vegetables.",
+                    "price": 12.99,
+                    "image_url": "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8",
+                    "is_vegetarian": True,
+                    "spice_level": 2
+                }
+            ]
+        elif idx == 6:  # Mediterranean Delight
+            menu_items = [
+                {
+                    "category": category_objects[0],  # Kebabs
+                    "name": "Mixed Grill Kebab",
+                    "description": "Assorted grilled meats with vegetables and rice.",
+                    "price": 16.99,
+                    "image_url": "https://images.unsplash.com/photo-1544378730-8b5104b41021",
+                    "is_vegetarian": False,
+                    "spice_level": 1
+                },
+                {
+                    "category": category_objects[1],  # Mezze
+                    "name": "Mezze Platter",
+                    "description": "Hummus, baba ganoush, falafel, and pita bread.",
+                    "price": 13.99,
+                    "image_url": "https://images.unsplash.com/photo-1542528180-a1208c5169a5",
+                    "is_vegetarian": True,
+                    "spice_level": 0
+                }
+            ]
+        elif idx == 7:  # Pho Express
+            menu_items = [
+                {
+                    "category": category_objects[0],  # Pho
+                    "name": "Pho Tai",
+                    "description": "Vietnamese beef noodle soup with rare steak.",
+                    "price": 11.99,
+                    "image_url": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43",
+                    "is_vegetarian": False,
+                    "spice_level": 1
+                },
+                {
+                    "category": category_objects[1],  # Banh Mi
+                    "name": "Grilled Pork Banh Mi",
+                    "description": "Vietnamese sandwich with grilled pork, pickled vegetables, and pate.",
+                    "price": 8.99,
+                    "image_url": "https://images.unsplash.com/photo-1600454309261-3dc9b7597637",
+                    "is_vegetarian": False,
+                    "spice_level": 1
+                }
+            ]
+        
+        for menu_item_data in menu_items:
+            menu_item = MenuItem(**menu_item_data)
+            db.session.add(menu_item)
     
     for item_data in burger_menu_items:
         item = MenuItem(**item_data)

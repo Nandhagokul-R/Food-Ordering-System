@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Food Delivery{% endblock %}</title>
+    <title>{% block title %}Food ordering system{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -18,11 +18,11 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <nav class="navbar navbar-expand-lg mb-4">
         <div class="container">
             <a class="navbar-brand" href="/">
                 <i class="fas fa-utensils me-2"></i>
-                Food Delivery
+                Food ordering system
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -37,6 +37,11 @@
                     </li>
                 </ul>
                 <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <button class="btn nav-link" id="theme-toggle">
+                            <i class="fas fa-moon" id="theme-icon"></i>
+                        </button>
+                    </li>
                     {% if user %}
                     <!-- User info for JavaScript -->
                     <div id="user-info" class="d-none" data-user-id="{{ user.id }}" data-username="{{ user.username }}"></div>
@@ -82,15 +87,15 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
+    <footer class="py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>Food Delivery</h5>
+                    <h5 class="text-light">Food ordering system</h5>
                     <p class="text-muted">Bringing your favorite food right to your doorstep.</p>
                 </div>
                 <div class="col-md-4 mb-4 mb-md-0">
-                    <h5>Quick Links</h5>
+                    <h5 class="text-light">Quick Links</h5>
                     <ul class="list-unstyled">
                         <li><a href="/" class="text-decoration-none text-muted">Home</a></li>
                         <li><a href="/restaurants" class="text-decoration-none text-muted">Restaurants</a></li>
@@ -112,7 +117,7 @@
             <hr class="mt-4 mb-3">
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-0 text-muted">&copy; 2023 Food Delivery. All rights reserved.</p>
+                    <p class="mb-0 text-muted">&copy; 2023 Food ordering system. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
                     <ul class="list-inline mb-0">
@@ -125,10 +130,11 @@
         </div>
     </footer>
 
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- Core JS -->
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
     <script src="{{ url_for('static', filename='js/restaurants.js') }}"></script>
